@@ -1,0 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Poetry
+# Si usas Poetry, el lock file SÍ debe ir al repo, pero no los entornos locales
+.python-version
+# Solo ignorar si no quieres que otros usen tu config de poetry específica
+# .poetry/
+
+# Unit tests / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.座
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+# Excepción: puedes permitir el launch.json si es genérico para el equipo
+# !.vscode/launch.json
+
+# Local environment variables
+.env
+.flaskenv
+
+# OS-specific files
+.DS_Store
+Thumbs.db
