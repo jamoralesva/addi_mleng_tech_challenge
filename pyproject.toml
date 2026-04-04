@@ -3,7 +3,11 @@ name = "ml-ops-challenge"
 version = "0.1.0"
 description = "ML Ops Tech Challenge - Emporyum Tech Assistant"
 authors = ["ja.moralesv@hotmail.com"]
-package-mode = false
+package-mode = true
+packages = [
+    { include = "source" },
+    { include = "deliverables" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
@@ -14,6 +18,8 @@ pydantic = "^2.0"
 python-dotenv = "^1.0.0"
 ruff = "^0.15.9"
 pre-commit = "^4.5.1"
+fastapi = "^0.135.3"
+uvicorn = {extras = ["standard"], version = "^0.43.0"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
@@ -32,4 +38,10 @@ strict = true
 ignore_missing_imports = true
 plugins = [
   "pydantic.mypy"
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "deliverables/part1_api_and_containerization/tests"
 ]

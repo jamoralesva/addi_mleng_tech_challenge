@@ -16,10 +16,19 @@ Place your deliverables for Part 1 here.
 _Replace this section with your instructions:_
 
 ```bash
-# Build and run with Docker
+
+# Run with poetry (from root folder)
+poetry run uvicorn deliverables.part1_api_and_containerization.app.main:app --reload
+
+# Build with Docker (from root folder)
+docker build -t ml-ops-api -f deliverables/part1_api_and_containerization/Dockerfile .
+
+# Run with Docker (from root folder)
+docker run -it -p 8000:8000 ml-ops-api:latest    
+
 docker-compose up --build
 
-# Run tests
+# Run tests (from root folder)
 poetry run pytest
 
 # Access the API
