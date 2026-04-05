@@ -33,4 +33,8 @@ poetry run pytest
 
 # Access the API
 curl http://localhost:8000/health
+
+curl -X POST http://localhost:8000/chat  \
+     -H "Content-Type: application/json" \
+    -d '{ "question": "hola", "user_id": "user_001", "conversation_id": "test-002"}'
 ```
