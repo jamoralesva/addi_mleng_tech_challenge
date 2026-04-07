@@ -1,0 +1,140 @@
+openapi: 3.1.0
+info:
+  title: ML Experiment Lifecycle API
+  version: 1.0.0
+  description: API for managing the lifecycle of machine learning experiments based on SDD.
+
+paths:
+  /experiment:
+    post:
+      summary: Create a new experiment
+      operationId: createExperiment
+      responses:
+        '201':
+          description: Experiment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentResponse'
+
+  /experiment/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    put:
+      summary: Update an experiment
+      operationId: updateExperiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentUpdate'
+      responses:
+        '200':
+          description: Experiment updated
+        '404':
+          description: Experiment not found
+
+    delete:
+      summary: Archive an experiment
+      description: > 
+        Performs a logical delete by transitioning the experiment 
+        status to 'ARCHIVED'. The record remains in the database 
+        for audit and reproducibility purposes.
+      operationId: archiveExperiment
+      responses:
+        '204':
+          description: Experiment successfully archived.
+        '403':
+          description: Forbidden. Cannot archive an experiment currently in 'RUNNING' state.
+        '404':
+          description: Experiment not found.
+    get:
+      summary: Get experiment details
+      operationId: getExperiment
+      parameters:
+        - name: include-archive
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentResponse'
+
+  /experiment/{id}/data:
+    get:
+      summary: Get raw data or results of an experiment
+      operationId: getExperimentData
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+
+components:
+  schemas:
+    ExperimentStatus:
+      type: string
+      enum: [PENDING, RUNNING, SUCCESS, FAILED, ARCHIVED]
+
+    ExperimentUpdate:
+      type: object
+      properties:
+        tags:
+          type: array
+          items: { type: string }
+        status:
+          $ref: '#/components/schemas/ExperimentStatus'
+
+    ExperimentResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        model_id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/ExperimentStatus' }
+        metrics: { type: object }
+        created_at: { type: string, format: date-time }
+
+    Variant:
+      type: object
+      required: [name, traffic]
+      properties:
+        name: { type: string }
+        traffic:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: "Fraction of traffic allocated to this variant (0.0 to 1.0)."
+
+    ExperimentSpec:
+      type: object
+      required: [variants]
+      properties:
+        variants:
+          type: array
+          minItems: 1
+          items: 
+            $ref: '#/components/schemas/Variant'
+          description: "The sum of the 'traffic' field across all variants must equal exactly 1.0."
