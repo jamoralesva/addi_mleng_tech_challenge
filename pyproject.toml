@@ -31,11 +31,19 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
+include = [
+    "deliverables/part1_api_and_containerization/**",
+    "deliverables/part2_ab_testing/**"
+]
 lint.select = ["E", "F", "I"] # Errores, Pyflakes e Isort
 
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
+files = [
+    "deliverables/part1_api_and_containerization",
+    "deliverables/part2_ab_testing"
+]
 plugins = [
   "pydantic.mypy"
 ]
