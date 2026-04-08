@@ -2,8 +2,12 @@
 name = "ml-ops-challenge"
 version = "0.1.0"
 description = "ML Ops Tech Challenge - Emporyum Tech Assistant"
-authors = ["jamoralesv"]
-package-mode = false
+authors = ["ja.moralesv@hotmail.com"]
+package-mode = true
+packages = [
+    { include = "source" },
+    { include = "deliverables" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
@@ -12,6 +16,10 @@ langchain-openai = "^0.3.0"
 langchain-core = "^0.3.0"
 pydantic = "^2.0"
 python-dotenv = "^1.0.0"
+ruff = "^0.15.9"
+pre-commit = "^4.5.1"
+fastapi = "^0.135.3"
+uvicorn = {extras = ["standard"], version = "^0.43.0"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
@@ -20,3 +28,21 @@ pytest-asyncio = "^0.25.3"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 88
+lint.select = ["E", "F", "I"] # Errores, Pyflakes e Isort
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+plugins = [
+  "pydantic.mypy"
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "deliverables/part1_api_and_containerization/tests",
+    "deliverables/part2_ab_testing/tests"
+]
