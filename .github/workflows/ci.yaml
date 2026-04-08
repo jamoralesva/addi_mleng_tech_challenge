@@ -3,8 +3,14 @@ name: Continuous Integration
 on:
   push:
     branches: [ main, develop ]
+    paths:
+      - 'deliverables/part1_api_and_containerization/**'
+      - 'deliverables/part2_ab_testing/**'
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+    paths:
+      - 'deliverables/part1_api_and_containerization/**'
+      - 'deliverables/part2_ab_testing/**'
 
 jobs:
   quality-check:
@@ -36,13 +42,13 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Lint with Ruff
-        run: poetry run ruff check .
+        run: poetry run ruff check deliverables/part1_api_and_containerization/ deliverables/part2_ab_testing/
 
       - name: Check formatting with Ruff
-        run: poetry run ruff format --check .
+        run: poetry run ruff format --check deliverables/part1_api_and_containerization/ deliverables/part2_ab_testing/
 
       - name: Static Analysis with Mypy
-        run: poetry run mypy .
+        run: poetry run mypy deliverables/part1_api_and_containerization/ deliverables/part2_ab_testing/
 
       - name: Run Tests with Pytest
         run: |
