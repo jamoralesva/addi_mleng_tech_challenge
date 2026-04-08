@@ -1,0 +1,247 @@
+openapi: 3.1.0
+info:
+  title: ML Experiment Lifecycle API
+  version: 1.0.0
+  description: API for managing the lifecycle of machine learning experiments based on SDD.
+
+paths:
+  /experiment:
+    post:
+      summary: Create a new experiment
+      operationId: createExperiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentSpec'
+      responses:
+        '201':
+          description: Experiment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentResponse'
+        '400':
+          description: Bad Request. The experiment is invalid. Must satisfy the following conditions:
+            - Must include at least two variant.
+            - Must include ONLY one variant with a 'control' field set to true, indicating the control group.
+            - Must include a 'traffic' field for each variant, which is a float between 0.0 and 1.0.
+            - The sum of the 'traffic' field across all variants must equal exactly 1.0.
+
+  /experiment/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    put:
+      summary: Update an experiment
+      operationId: updateExperiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentUpdate'
+      responses:
+        '200':
+          description: Experiment updated
+        '404':
+          description: Experiment not found
+
+    delete:
+      summary: Archive an experiment
+      description: > 
+        Performs a logical delete by transitioning the experiment 
+        status to 'ARCHIVED'. The record remains in the database 
+        for audit and reproducibility purposes.
+      operationId: archiveExperiment
+      responses:
+        '204':
+          description: Experiment successfully archived.
+        '403':
+          description: Forbidden. Cannot archive an experiment currently in 'RUNNING' state.
+        '404':
+          description: Experiment not found.
+    get:
+      summary: Get experiment details
+      operationId: getExperiment
+      parameters:
+        - name: include-archive
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentResponse'
+        '404':
+          description: Experiment not found.
+
+  /experiment/{id}/data:
+    get:
+      summary: Get raw data or results of an experiment
+      operationId: getExperimentData
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Experiment not found.
+
+  /experiment/{id}/user/{user_id}/variant:
+    get:
+      summary: Get the variant assigned to a specific user for an experiment. This method must have very low latency as it will be called in the critical path of user interactions.
+      operationId: getExperimentVariant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User Variant assigned retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Variant'
+        '404':
+          description: Experiment not found.
+
+  /experiment/{id}/user/{user_id}/metric:
+    post:
+      summary: Post a metric value for a specific user in an experiment. This method must have very low latency, behavior 'fire and forget'
+      operationId: postExperimentMetric
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricValue'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Metric value accepted.
+
+components:
+  schemas:
+    ExperimentStatus:
+      type: string
+      enum: [PENDING, RUNNING, SUCCESS, FAILED, ARCHIVED]
+
+    ExperimentUpdate:
+      type: object
+      properties:
+        tags:
+          type: array
+          items: { type: string }
+        status:
+          $ref: '#/components/schemas/ExperimentStatus'
+
+    ExperimentResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        hypothesis: { type: string }
+        description: { type: string }
+        status: { $ref: '#/components/schemas/ExperimentStatus' }
+        created_at: { type: string, format: date-time }
+        variants:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Variant'
+
+    Variant:
+      type: object
+      required: [name, traffic]
+      properties:
+        name: { type: string }
+        control:
+          type: boolean
+          description: "Indicates if this variant is the control group. Exactly one variant must have this set to true."
+        config:
+          type: object
+          description: "Configuration parameters specific to this variant, such as hyperparameters or feature flags."
+        traffic:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: "Fraction of traffic allocated to this variant (0.0 to 1.0)."
+
+    ExperimentSpec:
+      type: object
+      required: [name, hypothesis, variants]
+      properties:
+        name:
+          type: string
+          description: "A human-readable name for the experiment."
+        hypothesis:
+          type: string
+          description: "A clear statement of the hypothesis being tested."
+        description:
+          type: string
+          description: "An optional detailed description of the experiment."
+        is_feature_flag:
+          type: boolean
+          description: "An optional flag that indicate the experiment is used as feature flag."
+        variants:
+          type: array
+          minItems: 2
+          items: 
+            $ref: '#/components/schemas/Variant'
+          description: "The sum of the 'traffic' field across all variants must equal exactly 1.0."
+
+    MetricValue:
+      type: object
+      required: [metric_key, value, timestamp]
+      properties:
+        metric_key:
+          type: string
+          description: "Metric unique name (e.g., 'click_rate', 'conversion')."
+        value:
+          type: number
+          description: "The metric value."
+        timestamp:
+          type: string
+          format: date-time
+          description: "The time at which the metric was recorded."

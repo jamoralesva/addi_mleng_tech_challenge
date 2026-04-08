@@ -13,7 +13,15 @@ Place your deliverables for Part 1 here.
 
 ## How to Run
 
-_Replace this section with your instructions:_
+*Important:* For this component to function correctly, the container image of the experiments service from part 2 must be built and running with an experiment active.
+
+### Environment Variables Required
+
+```
+OPENAI_API_KEY=sk-proj-...
+EXPERIMENTS_API_URL=http://localhost:1348
+EXPERIMENT_ID=...
+```
 
 ```bash
 
@@ -24,7 +32,7 @@ poetry run uvicorn deliverables.part1_api_and_containerization.app.main:app --re
 docker build -t ml-ops-api -f deliverables/part1_api_and_containerization/Dockerfile .
 
 # Run with Docker (from root folder)
-docker run -it -p 8000:8000 ml-ops-api:latest    
+docker run -it -p 8000:8000 --env-file .env ml-ops-api:latest
 
 docker-compose up --build
 

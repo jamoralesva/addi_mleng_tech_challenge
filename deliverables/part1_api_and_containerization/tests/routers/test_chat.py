@@ -1,7 +1,7 @@
+import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import json
 
 from deliverables.part1_api_and_containerization.app.adapters.chat_agent import (
     ChatAgent,
@@ -56,8 +56,10 @@ class TestChatRouter:
 
         # Assert
         assert response.status_code == 200
+
+        response_json = json.loads(response.json())
         assert (
-            json.loads(response.json())["response"] == "Hola Nicolas Mora, Esto es un mock"
+            response_json["response"] == "Hola Nicolas Mora, Esto es un mock"
         )
         mock_agent.respond.assert_called_once_with(
             user_id="user123",
