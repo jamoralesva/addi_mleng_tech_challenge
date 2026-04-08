@@ -104,6 +104,47 @@ Within the Hexagonal Architecture, this validation belongs in the Domain Model.
 The configuration dictionary schema (`config`) for each variant of an experiment must be consistent with the configuration of the control variant.
 
 
+#### User Assign mechanism
+
+The method `GET /experiment/{id}/user/{user_id}/variant` must use the following class, that implements the user assignation mechanism:
+
+```python
+import hashlib
+
+class ExperimentUserAssigner:
+    def __init__(self, variants: list, epsilon: float = 1e-9):
+        self.variants = variants
+        self.total_traffic = sum(v['traffic'] for v in variants)
+        
+        if abs(self.total_traffic - 1.0) > epsilon:
+            raise ValueError("the sum of traffic for all variants must be 1.0.")
+
+        self.thresholds = []
+        cumulative = 0.0
+        for v in variants:
+            cumulative += v['traffic']
+            self.thresholds.append((cumulative, v['name']))
+
+    def assign_variant(self, user_id: str) -> dict:
+        """
+        Assigns a variant in a deterministic wat using the user_id hash.
+        """
+
+        hash_object = hashlib.sha256(user_id.encode())
+        hash_hex = hash_object.hexdigest()
+        
+        # using the first 8 digits
+        hash_int = int(hash_hex[:8], 16)
+        scale = hash_int / 0xFFFFFFFF  # norm to [0, 1)
+
+        for threshold, variant_obj in self.thresholds:
+            if scale < threshold:
+                return variant_obj
+        
+        return self.variants[-1]
+```
+
+
 ## Experiment Life Cycle State Machine
 
 Below is a diagram showing the state machine that governs the life cycle of experiments.
@@ -133,11 +174,11 @@ Create the class `/part2_ab_testing/lib/experiments_client.py`
 
 *Description*: Implementation of the ExperimentsClient class, responsible for interfacing with the experimentation service.
 
-    *Initialization:* The constructor must support the configuration of the host parameter (the base URL of the service).
+    *Initialization:* The constructor must support the configuration of the host parameter (the base URL of the service). Must download the experiment config using endpoint for `Get Experiment Details` after that, initalize the class `ExperimentUserAssigner` with the experiment variants.
 
     *Method:* get_variant(experiment_id: str, user_id: str) -> Dict
 
-        Action: Executes a GET request to the `/experiment/{id}/user/{user_id}/variant` endpoint.
+        Action: Call the method `assign_user` of the class `ExperimentUserAssigner`
 
         Return: The assigned variant (dict).
 
