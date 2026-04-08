@@ -43,5 +43,6 @@ plugins = [
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
-    "deliverables/part1_api_and_containerization/tests"
+    "deliverables/part1_api_and_containerization/tests",
+    "deliverables/part2_ab_testing/tests"
 ]

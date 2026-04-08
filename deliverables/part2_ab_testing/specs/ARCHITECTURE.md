@@ -192,6 +192,12 @@ Create the class `/part2_ab_testing/lib/experiments_client.py`
 
 ## Development
 
+## Frameworks
+
+Use the following tools:
+- FastAPI for API REST implementation
+- Pydantic for data validation
+
 ### Unit Testing Using AAA Pattern
 
 1. Arrange

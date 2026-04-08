@@ -13,7 +13,8 @@ WORKDIR /app
 # Copiamos archivos de dependencias Y el código para que Poetry pueda "instalar" el proyecto
 COPY pyproject.toml poetry.lock ./
 COPY source/ ./source/
-COPY deliverables/ ./deliverables/
+# Copiamos solo el código necesario para la parte 1, para evitar instalar dependencias de la parte 2 que no se usan en esta etapa
+COPY deliverables/part1_api_and_containerization ./deliverables/part1_api_and_containerization
 
 # Instalamos incluyendo el root (esto crea los enlaces a source y deliverables en el .venv)
 RUN poetry install --only main && rm -rf $POETRY_CACHE_DIR
@@ -33,7 +34,7 @@ ENV VIRTUAL_ENV=/app/.venv \
 COPY --from=builder /app/.venv /app/.venv
 # Copiamos el código (necesario para que los symlinks del .venv funcionen)
 COPY source/ ./source/
-COPY deliverables/ ./deliverables/
+COPY deliverables/part1_api_and_containerization ./deliverables/part1_api_and_containerization
 
 EXPOSE 8000
 
